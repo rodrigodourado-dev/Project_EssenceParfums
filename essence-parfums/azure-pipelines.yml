@@ -1,0 +1,35 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  appName: 'SEU_APP_SERVICE'
+  azureSubscription: 'Azure subscription 1 (xxxxx-xxxx)'
+
+steps:
+- task: UseNode@1
+  inputs:
+    version: '24.x'
+  displayName: 'Node 24 LTS'
+
+- script: npm ci
+  displayName: 'Instalar dependências'
+
+- script: npm run build
+  displayName: 'Build do projeto'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    pathToPublish: 'dist'
+    artifactName: 'drop'
+  displayName: 'Publicar build'
+
+- task: AzureWebApp@1
+  inputs:
+    azureSubscription: '$(azureSubscription)'
+    appType: 'webAppLinux'
+    appName: '$(appName)'
+    package: '$(System.DefaultWorkingDirectory)/dist'
+  displayName: 'Deploy para o Azure App Service'
